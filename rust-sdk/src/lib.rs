@@ -20,8 +20,8 @@ pub use client::{
 pub use cross_contract::{CrossContractInvocation, KeeperRegistryCrossContract};
 pub use error::{CallContext, Redacted};
 pub use events::{
-    EventDecodeError, FeesSweptEvent, InitializedEvent, KeeperEvent, PausedEvent,
-    RewardsWithdrawnEvent, TaskCancelledEvent, TaskClaimedEvent, TaskExecutedEvent,
+    ConditionNotMetEvent, EventDecodeError, FeesSweptEvent, InitializedEvent, KeeperEvent,
+    PausedEvent, RewardsWithdrawnEvent, TaskCancelledEvent, TaskClaimedEvent, TaskExecutedEvent,
     TaskExpiredEvent, TaskRegisteredEvent,
 };
 pub use network::{CustomNetworkConfig, Network, NetworkConfig, FUTURENET, MAINNET, TESTNET};

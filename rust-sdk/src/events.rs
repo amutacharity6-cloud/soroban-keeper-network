@@ -61,6 +61,12 @@ pub struct InitializedEvent {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct ConditionNotMetEvent {
+    pub task_id: u64,
+    pub condition: Address,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum KeeperEvent {
     TaskRegistered(TaskRegisteredEvent),
     TaskClaimed(TaskClaimedEvent),
@@ -71,6 +77,7 @@ pub enum KeeperEvent {
     Paused(PausedEvent),
     FeesSwept(FeesSweptEvent),
     Initialized(InitializedEvent),
+    ConditionNotMet(ConditionNotMetEvent),
 }
 
 #[derive(Debug, thiserror::Error)]

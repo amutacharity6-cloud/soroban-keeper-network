@@ -3,10 +3,10 @@
 use crate::error::CallContext;
 use crate::retry::{default_classify, ErrorClass, RetryPolicy, RpcCallError, TransportError};
 use crate::signing::TransactionSigner;
-pub use crate::types::{BatchTaskParams, PendingCredit, SlashRecord, Task, UnbondRequest};
+pub use crate::types::{BatchTaskParams, PendingCredit, SlashRecord, Task, TaskType, UnbondRequest};
 use keeper_registry::KeeperError;
 use soroban_sdk::xdr::ScVal;
-use soroban_sdk::{Address, Env, Symbol, TryFromVal, Val, Vec};
+use soroban_sdk::{Address, Bytes, Env, Symbol, TryFromVal, Val, Vec};
 use std::future::Future;
 use std::time::Duration;
 
@@ -44,6 +44,76 @@ impl<'a, S: TransactionSigner> KeeperClient<'a, S> {
             .map_err(contract_call_err(
                 "batch_register_tasks",
                 crate::call_args![&self.signer.address(), &tasks, &max_total_reward],
+            ))
+    }
+
+    /// Registers a single task, escrowing the reward from the owner into the contract.
+    ///
+    /// # Parameters
+    /// - `owner`: Task owner address (must authorize the call)
+    /// - `task_type`: Classification (Liquidation, OraclePricePush, etc.)
+    /// - `calldata`: Encoded parameters the keeper uses to build the target call
+    /// - `reward`: XLM stroops escrowed as bounty
+    /// - `deadline`: Unix timestamp after which the task expires
+    /// - `ttl_ledgers`: Storage entry lifetime in ledgers
+    /// - `lock_ledgers`: Ledgers the claimer holds exclusive rights
+    /// - `verifier`: Optional on-chain proof verifier (None for unverified tasks)
+    /// - `condition`: Optional on-chain condition predicate (None allows anyone to claim)
+    ///
+    /// # Returns
+    /// The new task's ID.
+    pub fn register_task(
+        &self,
+        owner: &Address,
+        task_type: TaskType,
+        calldata: Bytes,
+        reward: i128,
+        deadline: u64,
+        ttl_ledgers: u32,
+        lock_ledgers: u32,
+        verifier: Option<Address>,
+        condition: Option<Address>,
+    ) -> Result<u64, ClientError> {
+        let raw_client = keeper_registry::KeeperRegistryClient::new(self.env, &self.contract_id);
+        raw_client
+            .try_register_task(
+                owner,
+                &task_type,
+                &calldata,
+                &reward,
+                &deadline,
+                &ttl_ledgers,
+                &lock_ledgers,
+                &verifier,
+                &condition,
+            )
+            .map_err(contract_call_err(
+                "register_task",
+                crate::call_args![
+                    owner,
+                    &task_type,
+                    &calldata,
+                    &reward,
+                    &deadline,
+                    &ttl_ledgers,
+                    &lock_ledgers,
+                    &verifier,
+                    &condition,
+                ],
+            ))?
+            .map_err(contract_call_err(
+                "register_task",
+                crate::call_args![
+                    owner,
+                    &task_type,
+                    &calldata,
+                    &reward,
+                    &deadline,
+                    &ttl_ledgers,
+                    &lock_ledgers,
+                    &verifier,
+                    &condition,
+                ],
             ))
     }
 
